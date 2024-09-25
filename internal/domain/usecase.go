@@ -5,18 +5,14 @@ import (
 	"time"
 )
 
-type SignupUsecase interface {
+type AuthenticationUsecase interface {
 	Create(c context.Context, user *User) error
-	GetByUsername(c context.Context, username string) (*User, error)
-	GetByEmail(c context.Context, email string) (*User, error)
+	GetUserByID(c context.Context, ID int) (*User, error)
+	GetUserByUsername(c context.Context, username string) (*User, error)
+	GetUserByEmail(c context.Context, email string) (*User, error)
 	CreateAccessToken(user *User, secret string, expiry int) (accessToken string, err error)
 	CreateRefreshToken(user *User, secret string, expiry int) (refreshToken string, err error)
-}
-
-type LoginUsecase interface {
-	GetByUsername(c context.Context, username string) (*User, error)
-	CreateAccessToken(user *User, secret string, expiry int) (accessToken string, err error)
-	CreateRefreshToken(user *User, secret string, expiry int) (refreshToken string, err error)
+	ExtractIDFromToken(requestToken string, secret string) (int, error)
 }
 
 type URLUsecase interface {

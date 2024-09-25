@@ -40,17 +40,15 @@ func CreateRefreshToken(user *domain.User, secret string, expiry int) (refreshTo
 	return rt, err
 }
 
-func IsAuthorized(requestToken string, secret string) (bool, error) {
+func IsAuthorized(requestToken string, secret string) error {
 	_, err := jwt.Parse(requestToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(secret), nil
 	})
-	if err != nil {
-		return false, err
-	}
-	return true, nil
+
+	return err
 }
 
 func ExtractIDFromToken(requestToken string, secret string) (int, error) {
@@ -70,5 +68,5 @@ func ExtractIDFromToken(requestToken string, secret string) (int, error) {
 		return -1, fmt.Errorf("invalid Token")
 	}
 
-	return claims["id"].(int), nil
+	return int(claims["id"].(float64)), nil
 }

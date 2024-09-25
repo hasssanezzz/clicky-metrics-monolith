@@ -12,8 +12,8 @@ import (
 )
 
 type LoginController struct {
-	LoginUsecase domain.LoginUsecase
-	Env          *bootstrap.Env
+	AuthenticationUsecase domain.AuthenticationUsecase
+	Env                   *bootstrap.Env
 }
 
 type loginRequest struct {
@@ -28,7 +28,7 @@ func (con *LoginController) Execute(c *gin.Context) {
 		return
 	}
 
-	user, err := con.LoginUsecase.GetByUsername(context.Background(), req.Username)
+	user, err := con.AuthenticationUsecase.GetUserByUsername(context.Background(), req.Username)
 	if err != nil {
 		c.JSON(http.StatusNotFound, domain.ErrorResponse{Message: "username not found"})
 		return
@@ -39,14 +39,14 @@ func (con *LoginController) Execute(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := con.LoginUsecase.CreateAccessToken(user, con.Env.AccessTokenSecret, con.Env.AccessTokenExpiryHour)
+	accessToken, err := con.AuthenticationUsecase.CreateAccessToken(user, con.Env.AccessTokenSecret, con.Env.AccessTokenExpiryHour)
 	if err != nil {
 		log.Printf("count not create access token: %v", err)
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: "internal server error"})
 		return
 	}
 
-	refreshToken, err := con.LoginUsecase.CreateAccessToken(user, con.Env.RefreshTokenSecret, con.Env.RefreshTokenExpiryHour)
+	refreshToken, err := con.AuthenticationUsecase.CreateAccessToken(user, con.Env.RefreshTokenSecret, con.Env.RefreshTokenExpiryHour)
 	if err != nil {
 		log.Printf("count not refresh access token: %v", err)
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: "internal server error"})

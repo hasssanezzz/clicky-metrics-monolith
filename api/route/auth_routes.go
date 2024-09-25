@@ -12,8 +12,8 @@ import (
 func SetupLoginRoute(env *bootstrap.Env, db *sqlx.DB, group *gin.RouterGroup) {
 	userRepo := repository.NewUserRepository(db)
 	con := &controller.LoginController{
-		LoginUsecase: usecase.NewLoginUsecase(userRepo),
-		Env:          env,
+		AuthenticationUsecase: usecase.NewAuthenticationUsecase(userRepo),
+		Env:                   env,
 	}
 	group.POST("/login", con.Execute)
 }
@@ -21,8 +21,17 @@ func SetupLoginRoute(env *bootstrap.Env, db *sqlx.DB, group *gin.RouterGroup) {
 func SetupSignupRoute(env *bootstrap.Env, db *sqlx.DB, group *gin.RouterGroup) {
 	userRepo := repository.NewUserRepository(db)
 	con := controller.SignupController{
-		SignupUsecase: usecase.NewSignupUsecase(userRepo),
-		Env:           env,
+		AuthenticationUsecase: usecase.NewAuthenticationUsecase(userRepo),
+		Env:                   env,
 	}
 	group.POST("/signup", con.Execute)
+}
+
+func SetupRefreshTokenRoute(env *bootstrap.Env, db *sqlx.DB, group *gin.RouterGroup) {
+	userRepo := repository.NewUserRepository(db)
+	con := controller.RefreshTokenController{
+		AuthenticationUsecase: usecase.NewAuthenticationUsecase(userRepo),
+		Env:                   env,
+	}
+	group.POST("/refresh", con.Execute)
 }

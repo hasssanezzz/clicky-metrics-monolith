@@ -12,8 +12,8 @@ import (
 )
 
 type SignupController struct {
-	SignupUsecase domain.SignupUsecase
-	Env           *bootstrap.Env
+	AuthenticationUsecase domain.AuthenticationUsecase
+	Env                   *bootstrap.Env
 }
 
 type signupRequest struct {
@@ -29,12 +29,12 @@ func (con *SignupController) Execute(c *gin.Context) {
 		return
 	}
 
-	_, err := con.SignupUsecase.GetByEmail(context.Background(), req.Email)
+	_, err := con.AuthenticationUsecase.GetUserByEmail(context.Background(), req.Email)
 	if err == nil {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "email is in use"})
 	}
 
-	_, err = con.SignupUsecase.GetByUsername(context.Background(), req.Username)
+	_, err = con.AuthenticationUsecase.GetUserByUsername(context.Background(), req.Username)
 	if err == nil {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "username is in use"})
 	}
@@ -52,20 +52,20 @@ func (con *SignupController) Execute(c *gin.Context) {
 		Password: req.Password,
 	}
 
-	err = con.SignupUsecase.Create(context.Background(), &user)
+	err = con.AuthenticationUsecase.Create(context.Background(), &user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
 		return
 	}
 
-	accessToken, err := con.SignupUsecase.CreateAccessToken(&user, con.Env.AccessTokenSecret, con.Env.AccessTokenExpiryHour)
+	accessToken, err := con.AuthenticationUsecase.CreateAccessToken(&user, con.Env.AccessTokenSecret, con.Env.AccessTokenExpiryHour)
 	if err != nil {
 		log.Printf("count not create access token: %v", err)
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: "internal server error"})
 		return
 	}
 
-	refreshToken, err := con.SignupUsecase.CreateAccessToken(&user, con.Env.RefreshTokenSecret, con.Env.RefreshTokenExpiryHour)
+	refreshToken, err := con.AuthenticationUsecase.CreateAccessToken(&user, con.Env.RefreshTokenSecret, con.Env.RefreshTokenExpiryHour)
 	if err != nil {
 		log.Printf("count not refresh access token: %v", err)
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: "internal server error"})

@@ -17,6 +17,7 @@ func Setup(env *bootstrap.Env, db *sqlx.DB, gin *gin.Engine) {
 	// public routes
 	SetupLoginRoute(env, db, publicRouter)
 	SetupSignupRoute(env, db, publicRouter)
+	SetupRefreshTokenRoute(env, db, publicRouter)
 
 	// private routes
 }
