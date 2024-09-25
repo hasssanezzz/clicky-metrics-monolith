@@ -4,25 +4,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/hasssanezzz/clicky-metrics-monolith/api/middleware"
 	"github.com/hasssanezzz/clicky-metrics-monolith/bootstrap"
+	"github.com/jmoiron/sqlx"
 )
 
-func testPublicHandler(g *gin.Context) {
-	g.JSON(200, map[string]string{
-		"msg": "Hello world",
-	})
-}
+func Setup(env *bootstrap.Env, db *sqlx.DB, gin *gin.Engine) {
+	version := gin.Group("/v1")
 
-func testPrivateHandler(g *gin.Context) {
-	g.JSON(200, map[string]string{
-		"msg": "some secret",
-	})
-}
-
-func Setup(env *bootstrap.Env, gin *gin.Engine) {
-	publicRouter := gin.Group("")
-	publicRouter.GET("/", testPublicHandler)
-	privateRouter := gin.Group("")
+	publicRouter := version.Group("/auth")
+	privateRouter := version.Group("")
 	privateRouter.Use(middleware.JWTAUthMiddleware(env.AccessTokenSecret))
-	privateRouter.GET("/data", testPrivateHandler)
 
+	// public routes
+	SetupLoginRoute(env, db, publicRouter)
+	SetupSignupRoute(env, db, publicRouter)
+
+	// private routes
 }

@@ -4,6 +4,7 @@ type UserRepository interface {
 	Create(user *User) error
 	GetByID(id int) (*User, error)
 	GetByUsername(username string) (*User, error)
+	GetByEmail(username string) (*User, error)
 	Update(user *User) error
 	Delete(id int) error
 }

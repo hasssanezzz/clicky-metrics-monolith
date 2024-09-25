@@ -17,7 +17,7 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 }
 
 func (r *UserRepository) Create(user *domain.User) error {
-	query := `INSERT INTO "user" (username, email, password) 
+	query := `INSERT INTO "user" (username, email, password)
 	VALUES (:username, :email, :password)`
 
 	_, err := r.db.NamedExec(query, user)
@@ -49,9 +49,20 @@ func (r *UserRepository) GetByUsername(username string) (*domain.User, error) {
 	return &user, nil
 }
 
+func (r *UserRepository) GetByEmail(email string) (*domain.User, error) {
+	var user domain.User
+	query := `SELECT * FROM "user" WHERE email = $1`
+
+	err := r.db.Get(&user, query, email)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (r *UserRepository) Update(user *domain.User) error {
-	query := `UPDATE "user" 
-              SET email = :email, password = :password, updated_at = :updated_at 
+	query := `UPDATE "user"
+              SET email = :email, password = :password, updated_at = :updated_at
               WHERE id = :id`
 
 	user.UpdatedAt = time.Now()

@@ -7,8 +7,9 @@ import (
 )
 
 func main() {
-	env := bootstrap.NewEnv()
 	gin := gin.Default()
-	route.Setup(env, gin)
+	env := bootstrap.NewEnv()
+	db := bootstrap.MustSetup(env)
+	route.Setup(env, db, gin)
 	gin.Run(env.ServerAddress)
 }

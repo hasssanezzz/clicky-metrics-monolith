@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,18 +24,17 @@ type signupRequest struct {
 
 func (con *SignupController) Execute(c *gin.Context) {
 	req := new(signupRequest)
-
 	if err := c.ShouldBind(req); err != nil {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: err.Error()})
 		return
 	}
 
-	_, err := con.SignupUsecase.GetUserByEmail(context.Background(), req.Email)
+	_, err := con.SignupUsecase.GetByEmail(context.Background(), req.Email)
 	if err == nil {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "email is in use"})
 	}
 
-	_, err = con.SignupUsecase.GetUserByUsername(context.Background(), req.Username)
+	_, err = con.SignupUsecase.GetByUsername(context.Background(), req.Username)
 	if err == nil {
 		c.JSON(http.StatusBadRequest, domain.ErrorResponse{Message: "username is in use"})
 	}
@@ -46,7 +46,6 @@ func (con *SignupController) Execute(c *gin.Context) {
 	}
 
 	req.Password = string(hashedPassword)
-
 	user := domain.User{
 		Username: req.Username,
 		Email:    req.Email,
@@ -58,4 +57,23 @@ func (con *SignupController) Execute(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: err.Error()})
 		return
 	}
+
+	accessToken, err := con.SignupUsecase.CreateAccessToken(&user, con.Env.AccessTokenSecret, con.Env.AccessTokenExpiryHour)
+	if err != nil {
+		log.Printf("count not create access token: %v", err)
+		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: "internal server error"})
+		return
+	}
+
+	refreshToken, err := con.SignupUsecase.CreateAccessToken(&user, con.Env.RefreshTokenSecret, con.Env.RefreshTokenExpiryHour)
+	if err != nil {
+		log.Printf("count not refresh access token: %v", err)
+		c.JSON(http.StatusInternalServerError, domain.ErrorResponse{Message: "internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, map[string]string{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+	})
 }
